@@ -140,6 +140,7 @@ async def fetch_gf_torrents(
     season: Optional[int] = None,
     episode: Optional[int] = None,
     api_token: Optional[str] = None,
+    start_page: int = 1,
 ) -> list[dict]:
     """
     Fetch torrents from GF API with pagination, filtering by age.
@@ -163,7 +164,7 @@ async def fetch_gf_torrents(
     eligible_torrents = []
 
     async with httpx.AsyncClient(timeout=30.0) as client:
-        for page in range(1, MAX_PAGES + 1):
+        for page in range(start_page, MAX_PAGES + 1):
             # Build API URL
             params = {
                 "api_token": token,
@@ -416,6 +417,10 @@ async def torznab_api(
     if t in ("search", "tvsearch", "tv-search", "movie", "movie-search"):
         logger.info(f"Search request: t={t}, q={q}, cat={cat}, imdbid={imdbid}, apikey={'***' if apikey else 'None'}")
 
+        # For RSS (no query), start from page 5 to reach >36h content faster
+        # Specific searches start at page 1 to find older content by name
+        rss_start_page = 5 if not q and not imdbid else 1
+
         torrents = await fetch_gf_torrents(
             query=q,
             categories=categories,
@@ -423,6 +428,7 @@ async def torznab_api(
             season=season,
             episode=ep,
             api_token=apikey,
+            start_page=rss_start_page,
         )
 
         # Mock result for indexer validation tests (empty search)
