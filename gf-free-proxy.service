@@ -1,0 +1,24 @@
+[Unit]
+Description=GF-Free Torznab Proxy (36h filter)
+Documentation=https://github.com/Bilou778/gf-free-proxy
+After=network.target
+
+[Service]
+Type=simple
+User=nobody
+Group=nogroup
+WorkingDirectory=/opt/gf-free-proxy
+ExecStart=/opt/gf-free-proxy/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8888
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/gf-free-proxy
+
+[Install]
+WantedBy=multi-user.target
