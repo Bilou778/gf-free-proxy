@@ -1,0 +1,21 @@
+# Git
+.git
+.gitignore
+
+# Config locale (l'utilisateur passe les env vars)
+config.py
+
+# Documentation
+*.md
+LICENSE
+
+# Fichiers système
+.serena/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Scripts de déploiement
+*.sh
+*.service

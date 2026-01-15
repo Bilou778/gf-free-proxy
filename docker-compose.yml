@@ -1,0 +1,12 @@
+# Docker Compose pour test local
+# Usage: docker compose up -d --build
+
+services:
+  gf-free-proxy:
+    build: .
+    container_name: gf-free-proxy
+    environment:
+      - MIN_AGE_HOURS=36
+    ports:
+      - "8888:8888"
+    restart: unless-stopped

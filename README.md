@@ -45,6 +45,70 @@ sudo systemctl enable --now gf-free-proxy
 sudo systemctl status gf-free-proxy
 ```
 
+## Installation Docker (stack *arr)
+
+Pour les utilisateurs ayant une stack *arr (Sonarr, Radarr, Prowlarr) via Docker.
+
+### Option 1 : Ajout à un docker-compose existant
+
+Ajouter ce service à votre `docker-compose.yml` :
+
+```yaml
+services:
+  # ... vos autres services (prowlarr, sonarr, radarr, etc.)
+
+  gf-free-proxy:
+    build: ./gf-free-proxy  # chemin vers ce repo cloné
+    container_name: gf-free-proxy
+    environment:
+      - MIN_AGE_HOURS=36        # optionnel, 36h par défaut
+      # GF_API_TOKEN n'est PAS nécessaire ici - passez-le via Prowlarr
+    restart: unless-stopped
+    # Si vos *arr sont sur un réseau custom, ajoutez-le ici :
+    # networks:
+    #   - arr-network
+```
+
+Puis :
+
+```bash
+# Cloner le repo dans votre dossier docker
+git clone https://github.com/Bilou778/gf-free-proxy.git
+
+# Lancer (l'image se construit localement)
+docker compose up -d --build gf-free-proxy
+```
+
+### Option 2 : Standalone
+
+```bash
+git clone https://github.com/Bilou778/gf-free-proxy.git
+cd gf-free-proxy
+docker build -t gf-free-proxy .
+docker run -d --name gf-free-proxy -p 8888:8888 --restart unless-stopped gf-free-proxy
+```
+
+> Image basée sur Alpine Linux (~85 MB), compatible avec les autres containers LinuxServer.io de la stack *arr.
+
+### Configuration dans Prowlarr (Docker)
+
+Dans **Prowlarr** → Indexers → Add → Generic Torznab :
+- **URL** : `http://gf-free-proxy:8888` (nom du container)
+- **API Key** : Votre token Generation-Free
+
+> Les containers Docker communiquent entre eux par leur nom. Si gf-free-proxy est sur le même réseau Docker que Prowlarr, utilisez `http://gf-free-proxy:8888`.
+
+### Variables d'environnement
+
+| Variable | Défaut | Description |
+|----------|--------|-------------|
+| `GF_BASE_URL` | `https://generation-free.org` | URL du tracker |
+| `GF_API_TOKEN` | `` | Token API (optionnel si passé via Prowlarr) |
+| `MIN_AGE_HOURS` | `36` | Âge minimum des torrents |
+| `MAX_PAGES` | `10` | Pages max à scanner |
+| `RESULTS_LIMIT` | `50` | Résultats max retournés |
+| `CACHE_TTL_SECONDS` | `300` | Durée du cache (5 min) |
+
 ## Configuration Prowlarr / Sonarr / Radarr
 
 1. **Indexers** → Add Indexer → **Generic Torznab**
@@ -70,7 +134,11 @@ curl "http://localhost:8888/health"
 ## Logs
 
 ```bash
+# Systemd
 journalctl -u gf-free-proxy -f
+
+# Docker
+docker logs -f gf-free-proxy
 ```
 
 ## Licence

@@ -7,6 +7,7 @@ torrents de plus de 36h, évitant les erreurs 403 sur les téléchargements auto
 
 import asyncio
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Optional
 from xml.etree import ElementTree as ET
@@ -16,22 +17,49 @@ from dateutil import parser as date_parser
 from fastapi import FastAPI, Query, Response
 from fastapi.responses import PlainTextResponse
 
-# Configuration - importée depuis config.py
+# Configuration - variables d'environnement avec fallback config.py
+# Priorité : 1) Variables d'environnement  2) config.py  3) Valeurs par défaut
 try:
     from config import (
-        GF_BASE_URL,
-        GF_API_TOKEN,
-        MIN_AGE_HOURS,
-        MAX_PAGES,
-        RESULTS_LIMIT,
-        CACHE_TTL_SECONDS,
+        GF_BASE_URL as _GF_BASE_URL,
+        GF_API_TOKEN as _GF_API_TOKEN,
+        MIN_AGE_HOURS as _MIN_AGE_HOURS,
+        MAX_PAGES as _MAX_PAGES,
+        RESULTS_LIMIT as _RESULTS_LIMIT,
+        CACHE_TTL_SECONDS as _CACHE_TTL_SECONDS,
         CATEGORY_MAP,
         TORZNAB_TO_GF,
     )
 except ImportError:
-    raise RuntimeError(
-        "config.py not found. Copy config.example.py to config.py and configure it."
-    )
+    # Pas de config.py (mode Docker) - utiliser les défauts
+    _GF_BASE_URL = "https://generation-free.org"
+    _GF_API_TOKEN = ""
+    _MIN_AGE_HOURS = 36
+    _MAX_PAGES = 10
+    _RESULTS_LIMIT = 50
+    _CACHE_TTL_SECONDS = 300
+
+    # Mappings par défaut (standard, rarement modifiés)
+    CATEGORY_MAP = {
+        1: [2000], 17: [2000], 16: [2000], 7: [2000],  # Films
+        2: [5000], 18: [5000],  # Séries
+        3: [3000], 4: [3000],   # Audio
+        5: [4000],              # Logiciels
+        6: [7000],              # E-books
+    }
+    TORZNAB_TO_GF = {
+        2000: [1, 16, 17, 7], 2010: [1], 2020: [1], 2030: [17], 2040: [17], 2045: [17],
+        5000: [2, 18], 5020: [2], 5030: [18], 5040: [18],
+        3000: [3, 4], 4000: [5], 7000: [6],
+    }
+
+# Variables d'environnement prioritaires sur config.py
+GF_BASE_URL = os.getenv("GF_BASE_URL", _GF_BASE_URL)
+GF_API_TOKEN = os.getenv("GF_API_TOKEN", _GF_API_TOKEN)
+MIN_AGE_HOURS = int(os.getenv("MIN_AGE_HOURS", str(_MIN_AGE_HOURS)))
+MAX_PAGES = int(os.getenv("MAX_PAGES", str(_MAX_PAGES)))
+RESULTS_LIMIT = int(os.getenv("RESULTS_LIMIT", str(_RESULTS_LIMIT)))
+CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", str(_CACHE_TTL_SECONDS)))
 
 # Logging
 logging.basicConfig(
