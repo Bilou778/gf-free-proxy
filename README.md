@@ -56,7 +56,7 @@ docker run -d \
   --name gf-free-proxy \
   -p 8888:8888 \
   --restart unless-stopped \
-  ghcr.io/bilou778/gf-free-proxy:latest
+  ghcr.io/bilou778/gf-free-proxy:main
 ```
 
 Ou avec docker-compose :
@@ -64,7 +64,7 @@ Ou avec docker-compose :
 ```yaml
 services:
   gf-free-proxy:
-    image: ghcr.io/bilou778/gf-free-proxy:latest
+    image: ghcr.io/bilou778/gf-free-proxy:main
     container_name: gf-free-proxy
     environment:
       - MIN_AGE_HOURS=37
@@ -92,7 +92,7 @@ docker run -d \
   -e LISTEN_PORT=9999 \
   -p 9999:9999 \
   --restart unless-stopped \
-  ghcr.io/bilou778/gf-free-proxy:latest
+  ghcr.io/bilou778/gf-free-proxy:main
 ```
 
 > Image basée sur Alpine Linux (~85 MB), compatible avec les autres containers LinuxServer.io de la stack *arr.

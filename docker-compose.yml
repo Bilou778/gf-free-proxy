@@ -3,7 +3,7 @@
 
 services:
   gf-free-proxy:
-    image: ghcr.io/bilou778/gf-free-proxy:latest
+    image: ghcr.io/bilou778/gf-free-proxy:main
     # build: .  # Décommenter pour build local au lieu de l'image pré-construite
     container_name: gf-free-proxy
     environment:
